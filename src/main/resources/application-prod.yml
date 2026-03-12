@@ -1,0 +1,21 @@
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT:6379}
+
+server:
+  port: ${PORT:8080}
+
+app:
+  base-url: ${BASE_URL}
+
+logging:
+  level:
+    root: WARN
+    eu.deic.urlshortener: INFO

@@ -1,0 +1,8 @@
+spring:
+  jpa:
+    show-sql: true              # show SQL in local dev only
+
+logging:
+  level:
+    eu.deic.urlshortener: DEBUG
+    org.springframework.security: DEBUG
