@@ -3,6 +3,7 @@ package eu.deic.url_shortener.service;
 import eu.deic.url_shortener.domain.Url;
 import eu.deic.url_shortener.dto.CreateUrlRequest;
 import eu.deic.url_shortener.dto.CreateUrlResponse;
+import eu.deic.url_shortener.dto.UrlStatsResponse;
 import eu.deic.url_shortener.exception.ForbiddenException;
 import eu.deic.url_shortener.exception.ShortCodeAlreadyExistsException;
 import eu.deic.url_shortener.exception.UrlNotFoundException;
@@ -89,18 +90,45 @@ class UrlServiceTest {
     }
 
     @Test
+    void getStats_shouldReturnUrlStatsResponse_whenUrlIsValid() {
+        Url url = new Url();
+        url.setOriginalUrl("https://example.com");
+        url.setShortCode("custom");
+        url.setActive(false);
+
+        when(urlRepository.findByShortCode("custom"))
+                .thenReturn(Optional.of(url));
+
+        UrlStatsResponse response = urlService.getStats("custom");
+
+        assertThat(response.getOriginalUrl()).isEqualTo("https://example.com");
+        assertThat(response.getShortCode()).isEqualTo("custom");
+        assertThat(response.getActive()).isFalse();
+    }
+
+    @Test
+    void getStats_shouldThrowUrlNotFoundException_whenUrlIsUnknown() {
+        when(urlRepository.findByShortCode("custom"))
+                .thenReturn(Optional.empty());
+
+        assertThrows(UrlNotFoundException.class, () -> urlService.getStats("custom"));
+    }
+
+    @Test
     void deleteUrl_shouldSetActiveToFalse_whenIsOwner() {
         Url url = new Url();
         url.setOriginalUrl("https://example.com");
         url.setShortCode("custom");
+        url.setCreatedBy("testOwner");
 
-        when(urlRepository.findByShortCodeAndCreatedByAndActiveTrue(eq("custom"), eq("testOwner")))
+        when(urlRepository.findByShortCodeAndActiveTrue(eq("custom")))
                 .thenReturn(Optional.of(url));
 
         urlService.deleteUrl("custom", "testOwner");
 
         ArgumentCaptor<Url> captor = ArgumentCaptor.forClass(Url.class);
         verify(urlRepository).save(captor.capture());
+        assertThat(captor.getValue().getCreatedBy()).isEqualTo("testOwner");
         assertThat(captor.getValue().getActive()).isFalse();
     }
 
@@ -111,9 +139,19 @@ class UrlServiceTest {
         url.setShortCode("custom");
         url.setCreatedBy("testOwner");
 
-        when(urlRepository.findByShortCodeAndCreatedByAndActiveTrue(eq("custom"), eq("somebody")))
-                .thenReturn(Optional.empty());
+        when(urlRepository.findByShortCodeAndActiveTrue("custom"))
+                .thenReturn(Optional.of(url));
 
         assertThrows(ForbiddenException.class, () -> urlService.deleteUrl("custom", "somebody"));
+    }
+
+    @Test
+    void deleteUrl_shouldThrowUrlNotFoundException_whenShortCodeIsUnknown() {
+        when(urlRepository.findByShortCodeAndActiveTrue("custom"))
+                .thenReturn(Optional.empty());
+        when(urlRepository.existsByShortCode(eq("custom")))
+                .thenReturn(false);
+
+        assertThrows(UrlNotFoundException.class, () -> urlService.deleteUrl("custom", "somebody"));
     }
 }
