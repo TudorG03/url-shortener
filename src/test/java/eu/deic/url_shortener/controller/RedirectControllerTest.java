@@ -6,6 +6,7 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ class RedirectControllerTest {
                 .thenReturn("https://example.com");
 
         mockMvc.perform(get("/custom"))
+                .andDo(print())
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://example.com"));
     }
