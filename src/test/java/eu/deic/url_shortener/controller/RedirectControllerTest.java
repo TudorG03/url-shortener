@@ -36,7 +36,6 @@ class RedirectControllerTest {
                 .thenReturn("https://example.com");
 
         mockMvc.perform(get("/custom"))
-                .andDo(print())
                 .andExpect(status().isFound())
                 .andExpect(header().string("Location", "https://example.com"));
     }
