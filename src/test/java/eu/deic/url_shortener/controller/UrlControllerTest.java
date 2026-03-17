@@ -20,6 +20,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import eu.deic.url_shortener.config.PasswordEncoderConfig;
 import eu.deic.url_shortener.config.SecurityConfig;
 import eu.deic.url_shortener.dto.CreateUrlRequest;
 import eu.deic.url_shortener.dto.CreateUrlResponse;
@@ -28,9 +29,12 @@ import eu.deic.url_shortener.exception.ForbiddenException;
 import eu.deic.url_shortener.exception.ShortCodeAlreadyExistsException;
 import eu.deic.url_shortener.exception.UrlNotFoundException;
 import eu.deic.url_shortener.service.UrlService;
+import eu.deic.url_shortener.security.ApiKeyAuthFilter;
+import eu.deic.url_shortener.security.ApiKeyAuthService;
+import eu.deic.url_shortener.repository.ApiKeyRepository;
 
 @WebMvcTest(UrlController.class)
-@Import(SecurityConfig.class)
+@Import({ SecurityConfig.class, ApiKeyAuthFilter.class, ApiKeyAuthService.class, PasswordEncoderConfig.class })
 class UrlControllerTest {
 
     @Autowired
@@ -38,6 +42,9 @@ class UrlControllerTest {
 
     @MockitoBean
     private UrlService urlService;
+
+    @MockitoBean
+    private ApiKeyRepository apiKeyRepository;
 
     @Test
     @WithMockUser

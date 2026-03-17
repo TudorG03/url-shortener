@@ -6,7 +6,6 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +14,17 @@ import org.springframework.context.annotation.Import;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
+import eu.deic.url_shortener.config.PasswordEncoderConfig;
 import eu.deic.url_shortener.config.SecurityConfig;
 import eu.deic.url_shortener.exception.UrlInactiveException;
 import eu.deic.url_shortener.exception.UrlNotFoundException;
 import eu.deic.url_shortener.service.UrlService;
+import eu.deic.url_shortener.security.ApiKeyAuthFilter;
+import eu.deic.url_shortener.security.ApiKeyAuthService;
+import eu.deic.url_shortener.repository.ApiKeyRepository;
 
 @WebMvcTest(RedirectController.class)
-@Import(SecurityConfig.class)
+@Import({ SecurityConfig.class, ApiKeyAuthFilter.class, ApiKeyAuthService.class, PasswordEncoderConfig.class })
 class RedirectControllerTest {
 
     @Autowired
@@ -29,6 +32,9 @@ class RedirectControllerTest {
 
     @MockitoBean
     private UrlService urlService;
+
+    @MockitoBean
+    private ApiKeyRepository apiKeyRepository;
 
     @Test
     void redirect_shouldReturnLocationHeader_whenShortCodeIsValid() throws Exception {

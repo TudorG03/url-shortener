@@ -23,6 +23,9 @@ public class ApiKey {
     @Column(name = "key_hash", nullable = false, unique = true)
     private String keyHash;
 
+    @Column(name = "key_prefix", nullable = false, length = 8)
+    private String keyPrefix;
+
     @Column(name = "owner", nullable = false)
     private String owner;
 
