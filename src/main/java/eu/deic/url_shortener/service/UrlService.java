@@ -14,6 +14,7 @@ import eu.deic.url_shortener.exception.ShortCodeAlreadyExistsException;
 import eu.deic.url_shortener.exception.UrlInactiveException;
 import eu.deic.url_shortener.exception.UrlNotFoundException;
 import eu.deic.url_shortener.repository.UrlRepository;
+import eu.deic.url_shortener.util.CodeGenerator;
 
 @Service
 public class UrlService {
@@ -21,25 +22,11 @@ public class UrlService {
     private final UrlRepository urlRepository;
     private final String baseUrl;
     private static final int SHORT_CODE_LEN = 6;
-    private static final String ALPHABET = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    private static final SecureRandom RNG = new SecureRandom();
 
     public UrlService(UrlRepository urlRepository,
             @Value("${app.base-url}") String baseUrl) {
         this.urlRepository = urlRepository;
         this.baseUrl = baseUrl;
-    }
-
-    private String generateShortCode() {
-        char[] shortCode = new char[SHORT_CODE_LEN];
-
-        do {
-            for (int i = 0; i < SHORT_CODE_LEN; i++) {
-                shortCode[i] = ALPHABET.charAt(RNG.nextInt(0, ALPHABET.length()));
-            }
-        } while (urlRepository.existsByShortCode(new String(shortCode)));
-
-        return new String(shortCode);
     }
 
     public CreateUrlResponse createUrl(CreateUrlRequest request, String owner) {
@@ -50,7 +37,9 @@ public class UrlService {
             }
             shortCode = request.getCustomCode();
         } else {
-            shortCode = generateShortCode();
+            do {
+                shortCode = CodeGenerator.generate(SHORT_CODE_LEN);
+            } while (urlRepository.existsByShortCode(shortCode));
         }
 
         Url url = Url.builder()
