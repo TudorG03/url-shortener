@@ -1,8 +1,9 @@
 package eu.deic.url_shortener.service;
 
-import java.security.SecureRandom;
+import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
 import eu.deic.url_shortener.domain.Url;
@@ -20,12 +21,24 @@ import eu.deic.url_shortener.util.CodeGenerator;
 public class UrlService {
 
     private final UrlRepository urlRepository;
+
+    private final StringRedisTemplate redisTemplate;
+
+    private static final String CACHE_KEY_PREFIX = "url:";
+
+    private static final int TTL_DURATION = 24;
+
+    private static final TimeUnit TTL_UNIT = TimeUnit.HOURS;
+
     private final String baseUrl;
+
     private static final int SHORT_CODE_LEN = 6;
 
     public UrlService(UrlRepository urlRepository,
+            StringRedisTemplate redisTemplate,
             @Value("${app.base-url}") String baseUrl) {
         this.urlRepository = urlRepository;
+        this.redisTemplate = redisTemplate;
         this.baseUrl = baseUrl;
     }
 
@@ -61,6 +74,12 @@ public class UrlService {
     }
 
     public String getUrlForRedirect(String shortCode) {
+        String originalUrl = redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + shortCode);
+
+        if (originalUrl != null && !originalUrl.isEmpty()) {
+            return originalUrl;
+        }
+
         Url url = urlRepository.findByShortCodeAndActiveTrue(shortCode)
                 .orElseThrow(() -> {
                     if (urlRepository.existsByShortCode(shortCode)) {
@@ -70,6 +89,8 @@ public class UrlService {
                 });
 
         urlRepository.incrementClickCount(shortCode);
+        redisTemplate.opsForValue().set(CACHE_KEY_PREFIX + shortCode, url.getOriginalUrl(), TTL_DURATION, TTL_UNIT);
+
         return url.getOriginalUrl();
     }
 
@@ -99,6 +120,8 @@ public class UrlService {
         if (!owner.equals(url.getCreatedBy())) {
             throw new ForbiddenException(shortCode, owner);
         }
+
+        redisTemplate.delete(CACHE_KEY_PREFIX + shortCode);
 
         url.setActive(false);
         urlRepository.save(url);
