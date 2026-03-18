@@ -18,6 +18,8 @@ public class ApiKeyAuthService implements UserDetailsService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private static final int PREFIX_START = 6;
+
     private static final int PREFIX_LENGTH = 8;
 
     private static final String USERNAME_NOT_FOUND_EX_MESSAGE = "Invalid API key";
@@ -29,7 +31,7 @@ public class ApiKeyAuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        String prefix = username.substring(0, PREFIX_LENGTH);
+        String prefix = username.substring(PREFIX_START, PREFIX_START + PREFIX_LENGTH);
         List<ApiKey> keys = apiKeyRepository.findByKeyPrefixAndActiveTrue(prefix);
         for (ApiKey key : keys) {
             if (passwordEncoder.matches(username, key.getKeyHash())) {
