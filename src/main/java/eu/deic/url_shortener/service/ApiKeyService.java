@@ -1,7 +1,5 @@
 package eu.deic.url_shortener.service;
 
-import java.time.Instant;
-
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 

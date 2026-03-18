@@ -3,9 +3,9 @@ spring:
     name: url-shortener
 
   datasource:
-    url: jdbc:postgresql://localhost:5432/urlshortener
-    username: urlshortener
-    password: urlshortener
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/urlshortener}
+    username: ${DB_USERNAME:urlshortener}
+    password: ${DB_PASSWORD:urlshortener}
     hikari:
       maximum-pool-size: 10
       minimum-idle: 5
@@ -40,6 +40,8 @@ server:
   port: 8080
 
 app:
+  admin:
+    secret: ${ADMIN_SECRET:local-admin-secret}
   base-url: http://localhost:8080
   short-code:
     length: 6
