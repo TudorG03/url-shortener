@@ -14,6 +14,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -25,6 +27,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 @ExtendWith(MockitoExtension.class)
 class UrlServiceTest {
@@ -32,11 +35,17 @@ class UrlServiceTest {
     @Mock
     private UrlRepository urlRepository;
 
+    @Mock
+    private StringRedisTemplate redisTemplate;
+
+    @Mock
+    private ValueOperations<String, String> valueOperations;
+
     private UrlService urlService;
 
     @BeforeEach
     void setUp() {
-        urlService = new UrlService(urlRepository, "http://localhost:8080");
+        urlService = new UrlService(urlRepository, redisTemplate, "http://localhost:8080");
     }
 
     @Test
@@ -72,6 +81,9 @@ class UrlServiceTest {
         Url url = new Url();
         url.setOriginalUrl("https://example.com");
 
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(anyString())).thenReturn(null);
+
         when(urlRepository.findByShortCodeAndActiveTrue(eq("custom")))
                 .thenReturn(Optional.of(url));
 
@@ -79,12 +91,15 @@ class UrlServiceTest {
 
         assertThat(result).isEqualTo("https://example.com");
         verify(urlRepository, times(1)).incrementClickCount(eq("custom"));
+        verify(valueOperations).set(eq("url:custom"), eq("https://example.com"), eq(24L), eq(TimeUnit.HOURS));
     }
 
     @Test
     void getUrlForRedirect_shouldThrowUrlNotFoundException_whenShortCodeIsUnknown() {
         when(urlRepository.findByShortCodeAndActiveTrue(anyString()))
                 .thenReturn(Optional.empty());
+        when(redisTemplate.opsForValue()).thenReturn(valueOperations);
+        when(valueOperations.get(anyString())).thenReturn(null);
 
         assertThrows(UrlNotFoundException.class, () -> urlService.getUrlForRedirect("unknown"));
     }
@@ -130,6 +145,7 @@ class UrlServiceTest {
         verify(urlRepository).save(captor.capture());
         assertThat(captor.getValue().getCreatedBy()).isEqualTo("testOwner");
         assertThat(captor.getValue().getActive()).isFalse();
+        verify(redisTemplate).delete("url:custom");
     }
 
     @Test
