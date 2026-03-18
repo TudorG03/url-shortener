@@ -16,6 +16,7 @@ import eu.deic.url_shortener.exception.UrlInactiveException;
 import eu.deic.url_shortener.exception.UrlNotFoundException;
 import eu.deic.url_shortener.repository.UrlRepository;
 import eu.deic.url_shortener.util.CodeGenerator;
+import jakarta.transaction.Transactional;
 
 @Service
 public class UrlService {
@@ -73,6 +74,7 @@ public class UrlService {
                 .build();
     }
 
+    @Transactional
     public String getUrlForRedirect(String shortCode) {
         String originalUrl = redisTemplate.opsForValue().get(CACHE_KEY_PREFIX + shortCode);
 
