@@ -18,6 +18,9 @@ public class RedisClientConfig {
     @Value("${spring.data.redis.port}")
     private int port;
 
+    @Value("${spring.data.redis.ssl.enabled}")
+    private boolean sslEnabled;
+
     @Value("${spring.data.redis.timeout}")
     private long millis;
 
@@ -26,6 +29,7 @@ public class RedisClientConfig {
         RedisURI redisUri = RedisURI.builder()
                 .redis(host, port)
                 .withTimeout(Duration.ofMillis(millis))
+                .withSsl(sslEnabled)
                 .build();
 
         return RedisClient.create(redisUri);
