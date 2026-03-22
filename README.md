@@ -73,7 +73,7 @@ Exceeded limits return `429 Too Many Requests` with a `Retry-After` header.
 
 ### Prerequisites
 
-- Java 25+
+- Java 21+
 - Maven 3.9+
 - Docker + Docker Compose
 
