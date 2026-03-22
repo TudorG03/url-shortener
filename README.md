@@ -6,7 +6,7 @@ A production-grade URL shortening service built with Spring Boot, PostgreSQL, an
 
 | Layer | Technology |
 |---|---|
-| Runtime | Java 25, Spring Boot 4 |
+| Runtime | Java 21, Spring Boot 4 |
 | Database | PostgreSQL 16 via Spring Data JPA + Hibernate |
 | Cache / Rate Limiting | Redis 7 via Spring Data Redis + Lettuce |
 | Rate Limiting Library | Bucket4j |
@@ -95,9 +95,9 @@ The application starts on `http://localhost:8080`.
 
 | Endpoint | URL |
 |---|---|
-| Health check | http://localhost:8080/actuator/health |
-| Swagger UI | http://localhost:8080/swagger-ui |
-| API docs | http://localhost:8080/api-docs |
+| Health check | <http://localhost:8080/actuator/health> |
+| Swagger UI | <http://localhost:8080/swagger-ui> |
+| API docs | <http://localhost:8080/api-docs> |
 
 ### Environment Variables
 
