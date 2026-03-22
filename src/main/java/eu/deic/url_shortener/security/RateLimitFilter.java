@@ -71,6 +71,11 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
     }
 
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) throws ServletException {
+        return request.getRequestURI().startsWith("/actuator");
+    }
+
     private ErrorResponse getErrorResponse(long waitSeconds) {
         return ErrorResponse.builder()
                 .status(429)
