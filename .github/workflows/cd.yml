@@ -61,4 +61,4 @@ jobs:
           script: sudo systemctl restart url-shortener.service
 
       - name: Health check
-        run: curl -f ${{ secrets.EC2_HOST }}/actuator/health --retry 5 --retry-delay 5
+        run: curl -f --retry 10 --retry-delay 5 --retry-all-errors --max-time 10 ${{ secrets.BASE_URL }}/actuator/health
